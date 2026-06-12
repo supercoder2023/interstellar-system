@@ -22,24 +22,36 @@ Any pull request or modification that violates these five protocols will be reje
 ## System Architecture
 
 * **Core Interface:** Python 3.11 + FastAPI
-* **Data Persistence:** MongoDB
-* **Orchestration:** Docker & Docker Compose
+* **Data Persistence:** MongoDB / MongoDB Atlas
+* **Local Orchestration:** Docker & Docker Compose
+* **Cloud Hosting:** Google Cloud Run (Serverless)
 * **State:** Stateless application logic attached to persistent data volumes.
 
 ## Directory Structure
 
 \`\`\`text
 .
-├── docker-compose.yml   # System orchestration map
+├── docker-compose.yml   # System orchestration map (Offline/Local)
 ├── Dockerfile           # Genesis container blueprint
 ├── main.py              # Single-file core logic and API
 ├── requirements.txt     # Strict dependency locks
 └── docs/                # System manifests and offline manuals
 \`\`\`
 
-## Initiation Sequence
+---
 
-To bring the Genesis Node online, ensure you have Docker and Docker Compose installed on your host system.
+## Deployment Protocols
+
+### Option A: Cloud Run Deployment (Live Operations)
+The system is actively hosted via Google Cloud Run on a serverless, scale-to-zero architecture to preserve resources. 
+
+To deploy updates to the live node, authenticate via Google Cloud CLI and run:
+\`\`\`bash
+gcloud run deploy genesis-node --source . --region us-central1 --allow-unauthenticated --min-instances 0 --max-instances 1 --port 8000 --set-env-vars DATABASE_URL="mongodb+srv://<username>:<password>@cluster0...mongodb.net/?retryWrites=true"
+\`\`\`
+
+### Option B: Local Initiation Sequence (Offline/Fallback)
+If cloud infrastructure is lost, the system can be booted locally on any hardware running Docker.
 
 1. **Clone the repository:**
    \`\`\`bash
@@ -52,40 +64,38 @@ To bring the Genesis Node online, ensure you have Docker and Docker Compose inst
    docker-compose up -d --build
    \`\`\`
 
-3. **Verify system status:**
-   The node will expose its interface on port `8000`.
+3. **Verify offline system status:**
    \`\`\`bash
    curl http://localhost:8000/
    \`\`\`
-   *Expected Response:*
-   \`\`\`json
-   {
-       "directive": "Survive and Explore",
-       "uptime_epoch": "2026-06-12T02:25:02+00:00",
-       "systems": "Nominal"
-   }
-   \`\`\`
+
+---
 
 ## Telemetry Interface
 
-The system accepts telemetry data via standard HTTP POST protocols. 
+The active node accepts telemetry data from exploration vessels via standard HTTP POST protocols to its live cloud endpoint.
 
-**Log Data:**
+**Ping System Status:**
+\`\`\`bash
+curl https://genesis-node-303279204689.us-central1.run.app/
+\`\`\`
+
+**Log Telemetry Data:**
 \`\`\`bash
 curl -X 'POST' \
-  'http://localhost:8000/telemetry/log' \
+  'https://genesis-node-303279204689.us-central1.run.app/telemetry/log' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{
   "sector": "Alpha Centauri",
   "status": "Approaching",
-  "timestamp": "2026-06-12T02:25:02Z"
+  "timestamp": "2026-06-12T12:00:00Z"
 }'
 \`\`\`
 
-## Maintenance & Shut Down
+## Maintenance & Shut Down (Local)
 
-To safely spin down the containers while preserving the `system_data` volume:
+To safely spin down the local offline containers while preserving the `system_data` volume:
 \`\`\`bash
 docker-compose down
 \`\`\`
